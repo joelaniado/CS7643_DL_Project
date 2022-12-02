@@ -7,3 +7,4 @@ matplotlib==3.6
 pandas==1.2.0
 tqdm==4.59.0
 torch==1.13.0
+git+https://github.com/qubvel/segmentation_models.pytorch@c48c906bc2ee238f45aedf413e9248c37f088894

@@ -54,14 +54,14 @@ class DatasetforPytorch(Dataset):
     def __len__(self):
         return self.num_examples
 
-bestmodel = torch.load("/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/cs7643_project/modeloutput/model.pth").cpu()
+bestmodel = torch.load("/home/spencervore/Documents/cs7643/project/data/output/modeloutput/model.pth").cpu()
 loss       = smp.losses.JaccardLoss(mode='binary')
 fscore_fxn = smp.utils.metrics.Fscore()
 iou_fxn    = smp.utils.metrics.IoU()
 sig        = nn.Sigmoid()
 
-test_dataset = DatasetforPytorch(images_dirpath="/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/output_uint16/nuclear/test/image", 
-                                 labels_dirpath="/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/output_uint16/nuclear/test/groundtruth_centerbinary_2pixelsmaller")
+test_dataset = DatasetforPytorch(images_dirpath="/home/spencervore/Documents/cs7643/project/data/output/nuclear/test/image", 
+                                 labels_dirpath="/home/spencervore/Documents/cs7643/project/data/output/nuclear/test/groundtruth_centerbinary_2pixelsmaller")
 test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False) # num_workers=12)
 
 for test in test_loader:

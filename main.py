@@ -13,7 +13,7 @@ import torch.nn.functional as F
 
 from PIL import Image
 
-base_source_dirpath = "/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/output_uint16/nuclear/"
+base_source_dirpath = "/home/spencervore/Documents/cs7643/project/data/output/nuclear/"
 
 train_dirpath = os.path.join(base_source_dirpath, "train")
 x_train_dir = os.path.join(train_dirpath, "image")
@@ -86,7 +86,7 @@ def main():
     train_logs_list = {"losses": [], "f_scores": [], "iou_scores": []}
     valid_logs_list = {"losses": [], "f_scores": [], "iou_scores": []}
 
-    model_file = "/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/cs7643_project/modeloutput/model.pth"
+    model_file = "/home/spencervore/Documents/cs7643/project/data/output/modeloutput/model.pth"
 
     # relevant for the while loop
     max_score = 0
