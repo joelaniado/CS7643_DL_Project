@@ -1,6 +1,5 @@
 import segmentation_models_pytorch as smp
 from segmentation_models_pytorch.utils.base import Metric
-
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 
@@ -15,6 +14,21 @@ from PIL import Image
 
 import matplotlib.pyplot as plt
 
+
+# Import configuration
+# Note that config.py is ignored by git and should 
+# be used for custom configuration
+# If config.py doesn't exist, use default settings.
+try:
+    import config as c
+except ImportError:
+    import config_default as c
+
+config_number_of_samples = c.number_of_samples
+config_model_file = c.model_file 
+config_images_dirpath = c.images_dirpath
+config_labels_dirpath = c.labels_dirpath
+
 class DatasetforPytorch(Dataset):
 
     def __init__(self, 
@@ -25,7 +39,11 @@ class DatasetforPytorch(Dataset):
 
         self.images_dirpath = images_dirpath
         self.labels_dirpath = labels_dirpath
-        self.examples = list(set(os.listdir(images_dirpath)) | set(os.listdir(labels_dirpath)))[0:10]
+        if config_number_of_samples is None:
+            self.examples = list(set(os.listdir(images_dirpath)) | set(os.listdir(labels_dirpath)))
+        else:
+            self.examples = list(set(os.listdir(images_dirpath)) | \
+                set(os.listdir(labels_dirpath)))[0:config_number_of_samples]
         print(self.examples)
         self.num_examples = len(self.examples)
         # self.preprocessing = preprocessing # this is a function that is getting intialized
@@ -54,14 +72,14 @@ class DatasetforPytorch(Dataset):
     def __len__(self):
         return self.num_examples
 
-bestmodel = torch.load("/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/cs7643_project/modeloutput/model.pth").cpu()
+bestmodel = torch.load(config_model_file).cpu()
 loss       = smp.losses.JaccardLoss(mode='binary')
 fscore_fxn = smp.utils.metrics.Fscore()
 iou_fxn    = smp.utils.metrics.IoU()
 sig        = nn.Sigmoid()
 
-test_dataset = DatasetforPytorch(images_dirpath="/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/output_uint16/nuclear/test/image", 
-                                 labels_dirpath="/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/output_uint16/nuclear/test/groundtruth_centerbinary_2pixelsmaller")
+test_dataset = DatasetforPytorch(images_dirpath=config_images_dirpath, 
+                                 labels_dirpath=config_labels_dirpath)
 test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False) # num_workers=12)
 
 for test in test_loader:
