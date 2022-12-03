@@ -99,4 +99,15 @@ for test in test_loader:
     ax[1,0].imshow(pred_0)
     ax[1,1].imshow(pred_1)
     ax[1,2].imshow(pred_2)
+
+    pred_combined = np.zeros(test0.squeeze().shape)
+    print(pred_combined.shape, pred_0.shape)
+    pred_combined[pred_0 == 1] = 1
+    pred_combined[pred_1 == 1] = 2
+    pred_combined[pred_2 == 1] = 3
+
+    ax[0,2].imshow(pred_combined)
+
+    
+    
     plt.show()
