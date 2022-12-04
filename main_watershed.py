@@ -15,13 +15,29 @@ import matplotlib.pyplot as plt
 
 from PIL import Image
 
-base_source_dirpath = "/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/output_uint16/nuclear/"
 
-train_dirpath = os.path.join(base_source_dirpath, "train")
+# Import configuration
+# Note that config.py is ignored by git and should 
+# be used for custom configuration
+# If config.py doesn't exist, use default settings.
+try:
+    import config as c
+except ImportError:
+    import config_default as c
+
+# config_base_source_dirpath = "/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/output_uint16/nuclear/"
+
+config_base_source_dirpath = c.base_source_dirpath 
+config_model_file = c.model_file 
+config_number_of_samples = c.number_of_samples
+config_device = c.device
+config_training_patience = c.training_patience
+
+train_dirpath = os.path.join(config_base_source_dirpath, "train")
 x_train_dir = os.path.join(train_dirpath, "image")
 y_train_dir = os.path.join(train_dirpath, "groundtruth_multiclass")
 
-valid_dirpath = os.path.join(base_source_dirpath, "validation")
+valid_dirpath = os.path.join(config_base_source_dirpath, "validation")
 x_valid_dir = os.path.join(valid_dirpath, "image")
 y_valid_dir = os.path.join(valid_dirpath, "groundtruth_multiclass")
 
@@ -35,7 +51,13 @@ class DatasetforPytorch(Dataset):
 
         self.images_dirpath = images_dirpath
         self.labels_dirpath = labels_dirpath
-        self.examples = list(set(os.listdir(images_dirpath)) | set(os.listdir(labels_dirpath)))[0:10]
+        if config_number_of_samples is None:
+            self.examples = list(set(os.listdir(images_dirpath)) | set(os.listdir(labels_dirpath)))
+        else:
+            self.examples = list(set(os.listdir(images_dirpath)) | \
+                set(os.listdir(labels_dirpath)))[0:config_number_of_samples]
+
+
         self.num_examples = len(self.examples)
         # self.preprocessing = preprocessing # this is a function that is getting intialized
         # self.augmentations = augmentations # this is a function that is getting initialized
@@ -67,14 +89,12 @@ class DatasetforPytorch(Dataset):
         return self.num_examples
 
 def main():
-    
-    device = 'cpu'
 
     model = smp.Unet(in_channels=1,
                      encoder_weights = None,
                      classes=3).float()
     
-    model.to(device)
+    model.to(config_device)
     model.train()
 
     train_dataset = DatasetforPytorch(images_dirpath=x_train_dir, labels_dirpath=y_train_dir)
@@ -93,7 +113,7 @@ def main():
     train_logs_list = {"losses": [], "f_scores": [], "iou_scores": []}
     valid_logs_list = {"losses": [], "f_scores": [], "iou_scores": []}
 
-    model_file = "/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/cs7643_project/modeloutput/model.pth"
+    # config_model_file = "/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/cs7643_project/modeloutput/model.pth"
 
     # relevant for the while loop
     max_score = 0
@@ -109,7 +129,7 @@ def main():
         epoch_iou    = 0
         epoch_fscore = 0
         for (data, target) in train_loader:
-            data, target = data.to(device), target.to(device)
+            data, target = data.to(config_device), target.to(config_device)
             optimizer.zero_grad() # clear all data from optimizer.step()
             output = model(data)
             probability = sig(output)
@@ -139,7 +159,7 @@ def main():
         epoch_iou    = 0
         epoch_fscore = 0
         for (data, target) in valid_loader:
-            data, target = data.to(device), target.to(device)     
+            data, target = data.to(config_device), target.to(config_device)     
             optimizer.zero_grad()
             output = model(data)
             probability = sig(output)
@@ -167,17 +187,17 @@ def main():
 
         if epoch_fscore > max_score:
             max_score = epoch_fscore
-            torch.save(model, model_file)
-            print("MODEL SAVED with F Score of {} at {}".format(epoch_fscore, model_file))
+            torch.save(model, config_model_file)
+            print("MODEL SAVED with F Score of {} at {}".format(epoch_fscore, config_model_file))
             early_stopping_counter = 0
         else:
             early_stopping_counter += 1 # then add one to the counter
             print(f"EARLY STOPPING COUNTER PLUS ONE: {early_stopping_counter}")
-            if early_stopping_counter >= patience:
+            if early_stopping_counter >= config_training_patience:
                 stop_the_training = True
             
         if (epoch%100) == 0:
-            torch.save(model, model_file[:-4] + f"_{epoch}.pth")
+            torch.save(model, config_model_file[:-4] + f"_{epoch}.pth")
 
         epoch += 1
         print(" ")
