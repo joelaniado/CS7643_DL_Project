@@ -28,7 +28,7 @@ except ImportError:
 # config_base_source_dirpath = "/Users/mmvihani/CodingEnvironment/GeorgiaTech/DeepLearning/Project/output_uint16/nuclear/"
 
 config_base_source_dirpath = c.base_source_dirpath 
-config_model_file = c.model_file 
+config_model_file = c.model_file_watershed 
 config_number_of_samples = c.number_of_samples
 config_device = c.device
 config_training_patience = c.training_patience
