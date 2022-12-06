@@ -1,0 +1,1 @@
+epoch,train_loss,val_loss,train_fscore,val_fscore,train_iou,val_iou,train_acc,val_acc,train_prec,val_prec,train_rec,val_rec

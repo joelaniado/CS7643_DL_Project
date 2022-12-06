@@ -3,10 +3,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-file = 'training_metrics/epoch_metrics.txt'
+file = 'training_metrics/epoch_metrics_main.txt'
 
 df = pd.read_csv(file)
-metrics = ['Loss', 'Fscore', 'Iou Score']
+metrics = ['Loss', 'Fscore', 'Iou Score', 'Accuracy', 'Precision', 'Recall']
 
 count = 0
 for i in range(1,len(df.columns),2):

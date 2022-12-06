@@ -100,7 +100,11 @@ def main():
     fscore_fxn = smp.utils.metrics.Fscore()
     #google and see metrics for plots
     iou_fxn    = smp.utils.metrics.IoU()
-    sig        = nn.Sigmoid()
+    acc_fxn = smp.utils.metrics.Accuracy()
+    prec_fxn = smp.utils.metrics.Precision()
+    rec_fxn = smp.utils.metrics.Recall()
+
+    sig    = nn.Sigmoid()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
 
@@ -114,8 +118,14 @@ def main():
     early_stopping_counter = 0
 
     print("Starting to Train ...")
-    metrics = open('training_metrics/epoch_metrics.txt', 'w')
-    metrics.write('epoch, train_loss, val_loss, train_fscore, val_fscore, train_iou, val_iou\n')
+    metrics = open('training_metrics/epoch_metrics_main.txt', 'w')
+    metrics.write('epoch,'
+                  'train_loss,val_loss,'
+                  'train_fscore,val_fscore,'
+                  'train_iou,val_iou,'
+                  'train_acc,val_acc,'
+                  'train_prec,val_prec,'
+                  'train_rec,val_rec\n')
 
     stop_the_training = False
     while stop_the_training == False:
@@ -123,6 +133,7 @@ def main():
         train_epoch_loss   = 0
         train_epoch_iou    = 0
         train_epoch_fscore = 0
+        train_epoch_acc, train_epoch_prec, train_epoch_recall = 0, 0, 0
 
         for (data, target) in train_loader:
             data, target = data.to(config_device), target.to(config_device)
@@ -135,10 +146,17 @@ def main():
                 # numbers we want to optimize, which is the loss function (losses.item())
             fscore = fscore_fxn.forward(probability, y_gt=target)
             iou    = iou_fxn.forward(probability, y_gt=target)
+            acc, prec, rec = acc_fxn.forward(probability, y_gt=target), \
+                prec_fxn.forward(probability, y_gt=target), \
+                rec_fxn.forward(probability, y_gt=target)
+
             # tqdm_train_loader.set_description(f"LOSS: {losses.item()}, F SCORE {fscore.item()}, IOU SCORE {iou.item()}")
             train_epoch_loss   += losses.item()/len(train_loader)
             train_epoch_fscore += fscore.item()/len(train_loader)
             train_epoch_iou    += iou.item()/len(train_loader)
+            train_epoch_acc    += acc.item()/len(train_loader)
+            train_epoch_prec   += prec.item()/len(train_loader)
+            train_epoch_recall += rec.item()/len(train_loader)
 
             #print(epoch_loss, epoch_fscore, epoch_iou)
             losses.backward() # applying back propagation, cacluating the gradients/derivatives. 
@@ -154,6 +172,7 @@ def main():
         val_epoch_loss   = 0
         val_epoch_iou    = 0
         val_epoch_fscore = 0
+        val_epoch_acc, val_epoch_prec, val_epoch_recall = 0, 0, 0
         for (data, target) in valid_loader:
             data, target = data.to(config_device), target.to(config_device)     
             #optimizer.zero_grad()
@@ -165,11 +184,17 @@ def main():
             losses = loss(probability, target)
             fscore = fscore_fxn.forward(probability, target)
             iou    = iou_fxn.forward(probability, target)
+            acc, prec, rec = acc_fxn.forward(probability, y_gt=target), \
+                prec_fxn.forward(probability, y_gt=target), \
+                rec_fxn.forward(probability, y_gt=target)
 
             # tqdm_valid_loader.set_description(f"LOSS: {losses.item()}, F SCORE {fscore.item()}, IOU SCORE {iou.item()}")
             val_epoch_loss   += losses.item()/len(valid_loader)
             val_epoch_fscore += fscore.item()/len(valid_loader)
             val_epoch_iou    += iou.item()/len(valid_loader)
+            val_epoch_acc += acc.item() / len(train_loader)
+            val_epoch_prec += prec.item() / len(train_loader)
+            val_epoch_recall += rec.item() / len(train_loader)
             #losses.backward()
             #optimizer.step()
 
@@ -177,8 +202,14 @@ def main():
         valid_logs_list["f_scores"].append(val_epoch_fscore)
         valid_logs_list["iou_scores"].append(val_epoch_iou)
 
-        metrics.write('{}, {}, {}, {}, {}, {}, {}\n'.format(
-            epoch, train_epoch_loss, val_epoch_loss, train_epoch_fscore, val_epoch_fscore,train_epoch_iou, val_epoch_iou))
+        metrics.write('{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(
+            epoch,
+            train_epoch_loss, val_epoch_loss,
+            train_epoch_fscore, val_epoch_fscore,
+            train_epoch_iou, val_epoch_iou,
+            train_epoch_acc, val_epoch_acc,
+            train_epoch_prec, val_epoch_prec,
+            train_epoch_recall, val_epoch_recall))
 
         print(f"VALID EPOCH {epoch}: Loss {val_epoch_loss}, F Score {val_epoch_fscore}, Iou Score {val_epoch_iou}")
 
