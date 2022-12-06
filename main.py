@@ -23,7 +23,8 @@ try:
 except ImportError:
     import config_default as c
 
-config_base_source_dirpath = c.base_source_dirpath 
+#config_base_source_dirpath = c.base_source_dirpath
+config_base_source_dirpath = r'C:\Users\Joe Laniado\Documents\Documents\Education\Georgia_tech\dl\cs7643_project\data\nuclear'
 config_model_file = c.model_file 
 config_number_of_samples = c.number_of_samples
 config_device = c.device
@@ -97,6 +98,7 @@ def main():
 
     loss       = smp.losses.JaccardLoss(mode='binary')
     fscore_fxn = smp.utils.metrics.Fscore()
+    #google and see metrics for plots
     iou_fxn    = smp.utils.metrics.IoU()
     sig        = nn.Sigmoid()
 
@@ -112,12 +114,16 @@ def main():
     early_stopping_counter = 0
 
     print("Starting to Train ...")
+    metrics = open('training_metrics/epoch_metrics.txt', 'w')
+    metrics.write('epoch, train_loss, val_loss, train_fscore, val_fscore, train_iou, val_iou\n')
+
     stop_the_training = False
     while stop_the_training == False:
 
-        epoch_loss   = 0
-        epoch_iou    = 0
-        epoch_fscore = 0
+        train_epoch_loss   = 0
+        train_epoch_iou    = 0
+        train_epoch_fscore = 0
+
         for (data, target) in train_loader:
             data, target = data.to(config_device), target.to(config_device)
             optimizer.zero_grad() # clear all data from optimizer.step()
@@ -130,53 +136,60 @@ def main():
             fscore = fscore_fxn.forward(probability, y_gt=target)
             iou    = iou_fxn.forward(probability, y_gt=target)
             # tqdm_train_loader.set_description(f"LOSS: {losses.item()}, F SCORE {fscore.item()}, IOU SCORE {iou.item()}")
-            epoch_loss   += losses.item()/len(train_loader)
-            epoch_fscore += fscore.item()/len(train_loader)
-            epoch_iou    += iou.item()/len(train_loader)
+            train_epoch_loss   += losses.item()/len(train_loader)
+            train_epoch_fscore += fscore.item()/len(train_loader)
+            train_epoch_iou    += iou.item()/len(train_loader)
 
-            print(epoch_loss, epoch_fscore, epoch_iou)
+            #print(epoch_loss, epoch_fscore, epoch_iou)
             losses.backward() # applying back propagation, cacluating the gradients/derivatives. 
             optimizer.step() # this updates weights. 
             
 
-        train_logs_list["losses"].append(epoch_loss)
-        train_logs_list["f_scores"].append(epoch_fscore)
-        train_logs_list["iou_scores"].append(epoch_iou)
-        print(f"TRAIN EPOCH {epoch}: Loss {epoch_loss}, F Score {epoch_fscore}, Iou Score {epoch_iou}") 
+        train_logs_list["losses"].append(train_epoch_loss)
+        train_logs_list["f_scores"].append(train_epoch_fscore)
+        train_logs_list["iou_scores"].append(train_epoch_iou)
 
-        epoch_loss   = 0
-        epoch_iou    = 0
-        epoch_fscore = 0
+        print(f"TRAIN EPOCH {epoch}: Loss {train_epoch_loss}, F Score {train_epoch_fscore}, Iou Score {train_epoch_iou}")
+
+        val_epoch_loss   = 0
+        val_epoch_iou    = 0
+        val_epoch_fscore = 0
         for (data, target) in valid_loader:
             data, target = data.to(config_device), target.to(config_device)     
-            optimizer.zero_grad()
+            #optimizer.zero_grad()
             output = model(data)
             probability = sig(output)
             assert torch.isnan(output).any() == False
             assert torch.isinf(output).any() == False
+
             losses = loss(probability, target)
             fscore = fscore_fxn.forward(probability, target)
             iou    = iou_fxn.forward(probability, target)
-            # tqdm_valid_loader.set_description(f"LOSS: {losses.item()}, F SCORE {fscore.item()}, IOU SCORE {iou.item()}")
-            epoch_loss   += losses.item()/len(valid_loader)
-            epoch_fscore += fscore.item()/len(valid_loader)
-            epoch_iou    += iou.item()/len(valid_loader)
-            losses.backward()
-            optimizer.step()
 
-        valid_logs_list["losses"].append(epoch_loss)
-        valid_logs_list["f_scores"].append(epoch_fscore)
-        valid_logs_list["iou_scores"].append(epoch_iou)
-        print(f"VALID EPOCH {epoch}: Loss {epoch_loss}, F Score {epoch_fscore}, Iou Score {epoch_iou}") 
+            # tqdm_valid_loader.set_description(f"LOSS: {losses.item()}, F SCORE {fscore.item()}, IOU SCORE {iou.item()}")
+            val_epoch_loss   += losses.item()/len(valid_loader)
+            val_epoch_fscore += fscore.item()/len(valid_loader)
+            val_epoch_iou    += iou.item()/len(valid_loader)
+            #losses.backward()
+            #optimizer.step()
+
+        valid_logs_list["losses"].append(val_epoch_loss)
+        valid_logs_list["f_scores"].append(val_epoch_fscore)
+        valid_logs_list["iou_scores"].append(val_epoch_iou)
+
+        metrics.write('{}, {}, {}, {}, {}, {}, {}\n'.format(
+            epoch, train_epoch_loss, val_epoch_loss, train_epoch_fscore, val_epoch_fscore,train_epoch_iou, val_epoch_iou))
+
+        print(f"VALID EPOCH {epoch}: Loss {val_epoch_loss}, F Score {val_epoch_fscore}, Iou Score {val_epoch_iou}")
 
         if epoch == 25:
             optimizer.param_groups[0]['lr'] = 1e-5
             print('Decrease decoder learning rate to 1e-5!')
 
-        if epoch_fscore > max_score:
-            max_score = epoch_fscore
+        if val_epoch_fscore > max_score:
+            max_score = val_epoch_fscore
             torch.save(model, config_model_file)
-            print("MODEL SAVED with F Score of {}".format(epoch_fscore))
+            print("MODEL SAVED with F Score of {}".format(val_epoch_fscore))
             early_stopping_counter = 0
         else:
             early_stopping_counter += 1 # then add one to the counter
@@ -189,5 +202,6 @@ def main():
 
         epoch += 1
         print(" ")
+    metrics.close()
 
 main()
