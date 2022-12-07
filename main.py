@@ -184,17 +184,17 @@ def main():
             losses = loss(probability, target)
             fscore = fscore_fxn.forward(probability, target)
             iou    = iou_fxn.forward(probability, target)
-            acc, prec, rec = acc_fxn.forward(probability, y_gt=target), \
-                prec_fxn.forward(probability, y_gt=target), \
-                rec_fxn.forward(probability, y_gt=target)
+            acc, prec, rec = acc_fxn.forward(probability, target), \
+                prec_fxn.forward(probability, target), \
+                rec_fxn.forward(probability, target)
 
             # tqdm_valid_loader.set_description(f"LOSS: {losses.item()}, F SCORE {fscore.item()}, IOU SCORE {iou.item()}")
             val_epoch_loss   += losses.item()/len(valid_loader)
             val_epoch_fscore += fscore.item()/len(valid_loader)
             val_epoch_iou    += iou.item()/len(valid_loader)
-            val_epoch_acc += acc.item() / len(train_loader)
-            val_epoch_prec += prec.item() / len(train_loader)
-            val_epoch_recall += rec.item() / len(train_loader)
+            val_epoch_acc += acc.item() / len(valid_loader)
+            val_epoch_prec += prec.item() / len(valid_loader)
+            val_epoch_recall += rec.item() / len(valid_loader)
             #losses.backward()
             #optimizer.step()
 
