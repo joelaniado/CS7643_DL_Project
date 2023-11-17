@@ -12,15 +12,15 @@ if profile == "test":
 
     ## SHARED SETTINGS
     
-    home_folder = "/home/spencervore/Documents/cs7643/"
+    home_folder = r"C:\Users\Joe Laniado\Documents\Documents\Education\Georgia_tech\dl\cs7643_project"
     
     # Only process the first n samples, or process all the samples if set to None
     number_of_samples = 10
-    model_file = home_folder + "project/data/testoutput/modeloutput/model.pth"
+    model_file = home_folder + "/modeloutput/model.pth"
     
 
     ## MAIN.PY SETTINGS
-    base_source_dirpath = home_folder + "project/data/testoutput/nuclear/"
+    base_source_dirpath = home_folder + "/data/nuclear/"
 
 
     ## TEST.PY SETTINGS
@@ -36,15 +36,15 @@ elif profile == "full":
 
     ## SHARED SETTINGS
     
-    home_folder = "/home/spencervore/Documents/cs7643/"
+    home_folder = r"C:\Users\Joe Laniado\Documents\Documents\Education\Georgia_tech\dl\cs7643_project"
     
     # Only process the first n samples, or process all the samples if set to None
-    number_of_samples = None
-    model_file = home_folder + "project/data/output/modeloutput/model.pth"
+    number_of_samples = 10
+    model_file = home_folder + "/modeloutput/model.pth"
     
 
     ## MAIN.PY SETTINGS
-    base_source_dirpath = home_folder + "project/data/output/nuclear/"
+    base_source_dirpath = home_folder + "/data/nuclear/"
 
 
     ## TEST.PY SETTINGS
